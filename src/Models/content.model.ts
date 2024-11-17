@@ -20,4 +20,4 @@ const contentSchema = new mongoose.Schema({
         ref: 'User',
          required: true },
 }, {timestamps:true})
-export const Content = mongoose.model("Content",contentSchema);
+export const ContentModel = mongoose.model("Content",contentSchema);
