@@ -7,14 +7,11 @@ import { userMiddleware } from "./middleware";
 import bcrypt from "bcrypt";
 import { UserModel } from "./Models/user.model";
 import { ContentModel } from "./Models/content.model";
-import  {connect_db} from "./db"
+import { connect_db } from "./db";
 const app = express();
 app.use(express.json());
 
-
-
-    connect_db();
-
+connect_db();
 
 app.post("/api/v1/signup", async (req, res) => {
   // TODO: zod validation , hash the password
@@ -36,6 +33,7 @@ app.post("/api/v1/signup", async (req, res) => {
     console.log("Data is valid:", result.data);
     try {
       const myPlaintextPassword = result.data.password;
+      console.log(myPlaintextPassword);
       const hash = await bcrypt.hash(myPlaintextPassword, 10);
       await UserModel.create({
         username: result.data.name,
@@ -44,9 +42,7 @@ app.post("/api/v1/signup", async (req, res) => {
       });
       res.json({ message: "User signed up" });
     } catch (e) {
-      // Handle errors (e.g., duplicate user)
       {
-        // Duplicate key error
         res.status(411).json({ message: "User already exists" });
       }
     }
@@ -55,28 +51,33 @@ app.post("/api/v1/signup", async (req, res) => {
   }
 });
 app.post("/api/v1/signin", async (req, res) => {
-  const username = req.body.username;
+  const username = req.body.name;
   const password = req.body.password;
 
   const existingUser = await UserModel.findOne({
     username,
-    password,
   });
+  console.log(existingUser);
+  //    const hash = existingUser.password;
   if (existingUser) {
-    const token = jwt.sign(
-      {
-        id: existingUser._id,
-      },
-      JWT_PASSWORD
-    );
-
-    res.json({
-      token,
-    });
+    try {
+      const hash = existingUser.password;
+      console.log(hash);
+      console.log(password);
+      const passwordMatch = await bcrypt.compare(password, hash);
+      console.log(passwordMatch);
+      if (passwordMatch) {
+        const token = jwt.sign({ id: existingUser._id }, JWT_PASSWORD);
+        res.json({ token });
+      } else {
+        res.status(401).json({ message: "Incorrect credentials" });
+      }
+    } catch (error) {
+      console.error("Error comparing passwords:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   } else {
-    res.status(403).json({
-      message: "Incorrrect credentials",
-    });
+    res.status(404).json({ message: "User not found" });
   }
 });
 
