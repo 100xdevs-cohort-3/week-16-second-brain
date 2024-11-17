@@ -1,20 +1,15 @@
+import mongoose, { connect } from "mongoose";
 
-import mongoose, {model, Schema} from "mongoose";
 
-mongoose.connect("mongodb://localhost:27017/brainly")
+export async function connect_db() {
+    try {
+       const stored = await connect("mongodb://localhost:27017/second-brain");
+        console.log("MongoDB connected successfully...");
+        // console.log(stored.connection,stored.Collection);
+    } catch (error) {
+        console.error("Error connecting to MongoDB:", error);
+        process.exit(1); 
 
-const UserSchema = new Schema({
-    username: {type: String, unique: true},
-    password: String
-})
+    }
+}
 
-export const UserModel = model("User", UserSchema);
-
-const ContentSchema = new Schema({
-    title: String,
-    link: String,
-    tags: [{type: mongoose.Types.ObjectId, ref: 'Tag'}],
-    userId: {type: mongoose.Types.ObjectId, ref: 'User', required: true }
-})
-
-export const ContentModel = model("Content", ContentSchema);
