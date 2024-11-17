@@ -11,6 +11,4 @@ export async function connect_db() {
 
     }
 }
-module.exports = {
-    connect_db
-}
+
