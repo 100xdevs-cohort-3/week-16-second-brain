@@ -1,20 +1,34 @@
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction, request, RequestHandler } from "express";
+import jwt, { Secret } from "jsonwebtoken";
 
-import { JWT_PASSWORD } from "./config";
-
-export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const header = req.headers["authorization"];
-    const decoded = jwt.verify(header as string, JWT_PASSWORD)
-    if (decoded) {
-        //@ts-ignore
-        req.userId = decoded.id;
-        next()
-    } else {
-        res.status(403).json({
-            message: "You are not logged in"
-        })
-    }
+interface jwtPayload{
+  id:string;
 }
 
-// override the types of the express request object
+export const userMiddleware:RequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+   try {
+     const header = req.header("Authorization");
+     const token = header?.split(" ")[1]
+    
+     const decoded = jwt.verify(token as string,process.env.JWT_SECRET as Secret ) as jwtPayload
+     if(!decoded){
+         res.status(401).json({
+             message:"Unauthorized Access"
+         })
+         return;
+     }
+
+    req.userId =decoded.id;
+    next();
+   } catch (error) {
+    res.status(401).json({
+        message:"Invalid access token"
+    })
+    return;
+   }
+
+};

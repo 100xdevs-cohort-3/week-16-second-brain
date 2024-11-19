@@ -1,20 +1,26 @@
+import mongoose, { Schema, model } from "mongoose";
 
-import mongoose, {model, Schema} from "mongoose";
+import dotenv from "dotenv";
 
-mongoose.connect("mongodb://localhost:27017/brainly")
+dotenv.config();
 
-const UserSchema = new Schema({
-    username: {type: String, unique: true},
-    password: String
-})
+mongoose
+  .connect(process.env.DATABASE_URL as string)
+  .then(() => console.log("Database connected successfully"))
+  .catch((err) => console.error("Database connection error:", err));
 
-export const UserModel = model("User", UserSchema);
+const userSchema = new Schema({
+  email: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
+});
 
-const ContentSchema = new Schema({
-    title: String,
-    link: String,
-    tags: [{type: mongoose.Types.ObjectId, ref: 'Tag'}],
-    userId: {type: mongoose.Types.ObjectId, ref: 'User', required: true },
-})
+const contentSchema = new Schema({
+  title:String,
+  link:String,
+  tags:[{type:mongoose.Types.ObjectId,ref:'Tag'}],
+  userId:{type:mongoose.Types.ObjectId,ref:'User',required:true},
+  type:String,
+});
 
-export const ContentModel = model("Content", ContentSchema);
+export const contentModel = model("Content",contentSchema);
+export const userModel = model("User", userSchema);
